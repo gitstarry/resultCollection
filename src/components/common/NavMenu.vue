@@ -7,25 +7,68 @@
     text-color="#222"
     active-text-color="red"
     style="min-width: 1100px">
-    <span style="position: absolute;padding-top: 20px;right: 3%;font-size: 20px;font-weight: bold">学生获奖录入中心</span>
-    <el-menu-item v-for="(item,i) in navList" :key="i" :index="item.name">
+    <a style="position: absolute;padding-top: 20px;right: 3%;font-size: 20px;font-weight: bold" href="javascript:void(0)" @click="jump()">学生获奖录入中心</a>
+    <el-menu-item v-for="(item,i) in navList" :key="i" :index="item.name" v-on:click="select" :results="results">
       {{ item.navItem }}
     </el-menu-item>
+    <el-dropdown style="position: absolute;padding-top: 20px;left: 40%;font-size: 16px">
+      <a  href="javascript:void(0)" style="color: #409EFF;cursor:pointer">学生</a>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item>修改密码</el-dropdown-item>
+            <el-dropdown-item>退出登录</el-dropdown-item>
+          </el-dropdown-menu>
+    </el-dropdown>
+    <div style="display: flex;margin-bottom: 20px;position: absolute;padding-top: 15px;left: 60%">
+      <el-input style="width: 180px;margin-right: 20px;margin-left: 95px;" v-model="nameKey" placeholder="请输入内容"></el-input>
+      <el-button type="primary" v-on:click="searchStudent">搜索</el-button>
+    </div>
+
   </el-menu>
 </template>
 
 <script>
+
     export default {
         name: "NavMenu",
         data () {
             return {
                 navList: [
                     {name: '/index', navItem: '主页'},
-                    {name: '/student',navItem: '学生'},
                     {name: '/information',navItem:'个人中心'},
-                    {name: '/inputInfo', navItem: '录入比赛信息'}
-                ]
+                    {name: '/inputInfo', navItem: '录入获奖信息'}
+                ],
+                result: {
+                    id:' ',
+                    student_number:' ',
+                    student_name:' ',
+                    competition_name:' ',
+                    competition_time:' ',
+                    entry_form:' ',
+                    ambulatory:' ',
+                    other_resume:' ',
+                },
+                results:[],
             }
+        },
+        methods : {
+            jump: function () {
+                this.$router.push({
+                    path:'/index',
+                })
+            },
+            /*select() {
+                console.log(this.$store.state);
+                this.$axios
+                    .post('/Result', {
+                         student_number:'11823020111',
+                    })
+                    .then(successResponse => {
+                        this.results = successResponse.data.results;
+                        console.log(result);
+                    })
+                    .catch(failResponse => {
+                    })
+            }*/
         }
     }
 </script>
