@@ -4,7 +4,7 @@
              label-width="0px">
       <h3 class="login_title">系统登录</h3>
       <el-form-item>
-        <el-input type="text" v-model="loginForm.username"
+        <el-input type="text" v-model="loginForm.studentNumber"
                   auto-complete="off" placeholder="账号"></el-input>
       </el-form-item>
       <el-form-item>
@@ -12,7 +12,8 @@
                   auto-complete="off" placeholder="密码"></el-input>
       </el-form-item>
       <el-form-item style="width: 100%">
-        <el-button type="primary" style="width: 100%;background: #505458;border: none" v-on:click="login">登录</el-button>
+        <el-button type="primary" style="width: 40%;background: #505458;border: none" v-on:click="login">登录</el-button>
+        <router-link to="register"><el-button type="primary" style="width: 40%;background: #505458;border: none">注册</el-button></router-link>
       </el-form-item>
     </el-form>
   </body>
@@ -24,7 +25,7 @@
         data () {
             return {
                 loginForm: {
-                    username: '',
+                    studentNumber: '',
                     password: ''
                 },
                 responseResult: []
@@ -36,15 +37,37 @@
                 console.log(this.$store.state)
                 this.$axios
                     .post('/login', {
-                        username: this.loginForm.username,
+                        studentNumber: this.loginForm.studentNumber,
                         password: this.loginForm.password
                     })
                     .then(successResponse => {
                         if (successResponse.data.code === 200) {
-                            // var data = this.loginForm
-                            _this.$store.commit('login', _this.loginForm)
-                            var path = this.$route.query.redirect
-                            this.$router.replace({path: path === '/' || path === undefined ? '/index' : path})
+                            if (successResponse.data.msg === "用户名不存在"){
+                                this.$alert("用户名不存在", '提示', {
+                                    confirmButtonText: '确定',
+                                    callback: action => {
+                                        this.function()
+                                    }
+                                })
+                            }
+
+                            else {
+                                _this.$store.commit('login', _this.loginForm)
+                                var path = this.$route.query.redirect
+                                this.$router.replace({path: path === '/' || path === undefined ? '/index' : path})
+                                this.$axios.post('/getAllUser', {
+                                        studentNumber: this.loginForm.studentNumber,
+                                    }).then(successResponse => {
+                                    _this.$store.state.userInfo.name = successResponse.data.name;
+                                    _this.$store.state.userInfo.studentNumber = successResponse.data.studentNumber;
+                                    _this.$store.state.userInfo.sex = successResponse.data.sex;
+                                    alert(_this.$store.state.userInfo.name)
+                                })
+                                    .catch(failResponse => {
+                                        alert("二次请求失败")
+                                        }
+                                    )
+                            }
                         }
                         else {
                             alert("用户名或密码错误")
