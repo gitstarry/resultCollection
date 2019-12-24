@@ -33,8 +33,7 @@
         },
         methods: {
             login () {
-                var _this = this
-                console.log(this.$store.state)
+                var _this = this;
                 this.$axios
                     .post('/login', {
                         studentNumber: this.loginForm.studentNumber,
@@ -50,14 +49,13 @@
                                     }
                                 })
                             }
-
                             else {
-                                _this.$store.commit('login', _this.loginForm)
-                                var path = this.$route.query.redirect
-                                this.$router.replace({path: path === '/' || path === undefined ? '/index' : path})
+                                _this.$store.commit('login', _this.loginForm);
+                                var path = this.$route.query.redirect;
+                                this.$router.replace({path: path === '/' || path === undefined ? '/index' : path});
                                 this.$axios.post('/getAllUser', {
-                                        studentNumber: this.loginForm.studentNumber,
-                                    }).then(successResponse => {
+                                    studentNumber: this.loginForm.studentNumber,
+                                }).then(successResponse => {
                                     _this.$store.state.userInfo.name = successResponse.data.name;
                                     _this.$store.state.userInfo.studentNumber = successResponse.data.studentNumber;
                                     _this.$store.state.userInfo.sex = successResponse.data.sex;
@@ -67,6 +65,7 @@
                                         alert("二次请求失败")
                                         }
                                     )
+                                //})
                             }
                         }
                         else {
@@ -74,7 +73,8 @@
                         }
                     })
                     .catch(failResponse => {
-                    })
+                    });
+
             },
         }
     }

@@ -1,4 +1,5 @@
 <template>
+ <div>
   <el-menu
     :default-active="'/index'"
     router
@@ -15,15 +16,26 @@
       <a  href="javascript:void(0)" style="color: #409EFF;cursor:pointer">学生 : {{this.$store.state.userInfo.name}}</a>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item>修改密码</el-dropdown-item>
-            <el-dropdown-item>退出登录</el-dropdown-item>
+            <el-dropdown-item @click.native="back()">退出登录</el-dropdown-item>
           </el-dropdown-menu>
     </el-dropdown>
     <div style="display: flex;margin-bottom: 20px;position: absolute;padding-top: 15px;left: 60%">
       <el-input style="width: 180px;margin-right: 20px;margin-left: 95px;" v-model="nameKey" placeholder="请输入内容"></el-input>
       <el-button type="primary" v-on:click="searchStudent">搜索</el-button>
     </div>
-
   </el-menu>
+   <el-dialog
+     title="提示"
+     :visible.sync="find"
+     width="30%"
+     center>
+     <span>确定退出？</span>
+     <span slot="footer" class="dialog-footer">
+            <el-button @click="find = false">取 消</el-button>
+            <el-button type="primary" @click="jumpFirst()">确 定</el-button>
+        </span>
+   </el-dialog>
+ </div>
 </template>
 
 <script>
@@ -37,7 +49,7 @@
                     {name: '/information',navItem:'个人中心'},
                     {name: '/inputInfo', navItem: '录入获奖信息'}
                 ],
-                results:[],
+                find:false,
             }
         },
         methods : {
@@ -46,6 +58,16 @@
                     path: '/index',
                 })
             },
+            back:function () {
+                this.find = true;
+            },
+            jumpFirst() {
+                window.localStorage.removeItem("user");
+                this.find = false;
+                this.$router.push({
+                    path:'/login',
+                });
+            }
         }
     }
 </script>

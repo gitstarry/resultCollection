@@ -22,17 +22,17 @@
     <div class="center">
       <div class="center-kuang">
         <div class="center-top">
-          <div v-for="(item,index) in results" v-bind:key="index">
+          <div v-for="(item,index) in currentPageData" v-bind:key="index">
             <div class="left-kuang">
               <div class="left-kuang-top">
-                <a style="font-size: 26px;text-decoration: none" href="javascript:void(0)"  @click="jumpSecond()">{{item.competitionName}}</a>
+                <a style="font-size: 26px;text-decoration: none" href="javascript:void(0)"  @click="jumpSecond(item)">{{item.competitionName}}</a>
               </div>
               <div class="left-kuang-center">
                 <p>{{item.other_resume}}</p>
               </div>
               <div class="left-kuang-bottom">
                 <p style="margin-right: 50px">{{item.studentName}}</p> <p style="margin-right: 50px">{{item.competitionTime}}</p>
-                <a href="javascript:void(0)" style="margin-right: 50px;padding-top: 14px" @click="jumpSecond()">查看</a> <a style="padding-top: 14px" href="javascript:void(0)" @click="dele()">删除</a>
+                <a href="javascript:void(0)" style="margin-right: 50px;padding-top: 14px" @click="jumpSecond(item)">查看</a> <a style="padding-top: 14px" href="javascript:void(0)" @click="dele(item.resultId)">删除</a>
               </div>
             </div>
             <div class="down-line">
@@ -40,22 +40,37 @@
             </div>
           </div>
         </div>
-       <!-- <div class="block">
-          <el-pagination
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-            :current-page="currentPage4"
-            :page-sizes="[4, 8, 12, 16]"
-            :page-size="4"
-            layout="total, sizes, prev, pager, next, jumper"
-            :total="this.results.length">
-          </el-pagination>
-        </div>-->
+        <div class="block">
+          <span style="margin-right: 80px">第 {{currentPage}} 页 / 共 {{totalPage}} 页</span>
+          <a @click="prevPage()"  href="javascript:void(0)" style="text-decoration: none;margin-right: 40px">上一页</a>
+          <a @click="nextPage()"  href="javascript:void(0)" style="text-decoration: none">下一页</a>
+        </div>
       </div>
     </div>
     <div class="right">
 
     </div>
+    <el-dialog
+      title="提示"
+      :visible.sync="centerDialogVisible"
+      width="30%"
+      center>
+      <span>是否要删除？</span>
+      <span slot="footer" class="dialog-footer">
+         <el-button @click="centerDialogVisible = false">取 消</el-button>
+         <el-button type="primary" @click="delet()">确 定</el-button>
+      </span>
+    </el-dialog>
+    <el-dialog
+      title="消息"
+      :visible.sync="correct"
+      width="15%"
+      center>
+      <span>删除成功</span>
+      <span slot="footer" class="dialog-footer">
+         <el-button type="primary" @click="correct = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -65,7 +80,7 @@
         data() {
             return {
                 result:{
-                    resultId:'',
+                    resultId:0,
                     studentNum: '',
                     studentName: '',
                     competitionName: '',
@@ -74,12 +89,15 @@
                     ambulatory: '',
                     other_resume: '',
                 },
-                results:[],
+                centerDialogVisible:false,
+                correct:false,
                 stuNum: "",
-              /*  currentPage1: 4,
-                currentPage2: 4,
-                currentPage3: 4,
-                currentPage4: 3,*/
+                id:'',
+                results:[],
+                totalPage: 1, // 统共页数，默认为1
+                currentPage: 1, //当前页数 ，默认为1
+                pageSize: 4, // 每页显示数量
+                currentPageData: [] //当前页显示内容
             }
         },
         mounted: function() {
@@ -91,19 +109,13 @@
                     path:'/inputInfo',
                 })
             },
-            jumpSecond:function() {
+            jumpSecond:function(item) {
                this.$router.push({
                    path:'/view',
+                   query:{
+                       result : item
+                   }
                })
-            },
-            /*handleSizeChange(val) {
-                console.log(`每页 ${val} 条`);
-            },
-            handleCurrentChange(val) {
-
-            },*/
-            dele() {
-
             },
             input() {
                  this.stuNum = this.$store.state.userInfo.studentNumber;
@@ -114,11 +126,62 @@
                     .post('/selectResult',postData)
                     .then(res =>{
                         this.results = res.data;
+                        this.totalPage = Math.ceil(this.results.length / this.pageSize);
+                        this.totalPage = this.totalPage === 0 ? 1 : this.totalPage;
+                        this.getCurrentPageData();
                     })
                     .catch(failResponse => {
-                        alert("输入错误");
+                        alert("添加失败");
                     })
             },
+            getCurrentPageData() {
+                let begin = (this.currentPage - 1) * this.pageSize;
+                let end = this.currentPage * this.pageSize;
+                this.currentPageData = this.results.slice(
+                    begin,
+                    end
+                );
+            },
+            prevPage() {
+                if (this.currentPage === 1) {
+                    alert("已经是第一页");
+                    return false;
+                } else {
+                    this.currentPage--;
+                    this.getCurrentPageData();
+                }
+            },
+            nextPage() {
+                if (this.currentPage === this.totalPage) {
+                    alert("已经是最后一页");
+                    return false;
+                } else {
+                    this.currentPage++;
+                    this.getCurrentPageData();
+                }
+            },
+            dele(resultId) {
+                this.centerDialogVisible = true;
+                this.id = resultId;
+            },
+            delet() {
+                let postData = this.$qs.stringify({
+                    id: this.id
+                });
+                this.$axios
+                    .post('/delete',postData)
+                    .then(res =>{
+                        var id = res.data;
+                        if(id === 1) {
+                            this.correct = true;
+                        }
+                        this.input();
+                        this.centerDialogVisible = false;
+                    })
+                    .catch(failResponse =>{
+                        alert("删除失败");
+                    });
+            }
         }
     }
 </script>
